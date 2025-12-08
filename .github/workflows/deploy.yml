@@ -1,0 +1,29 @@
+name: Simple CD - deploy to EC2   # Actions 탭에 보이는 워크플로우 이름
+
+on:
+  push:
+    branches: [ "main" ]          # main 브랜치에 push 될 때만 실행
+
+jobs:
+  deploy:                         # Job 이름
+    runs-on: ubuntu-latest        # GitHub에서 제공하는 Ubuntu 러너 사용
+
+    steps:
+      - name: Deploy via SSH to EC2
+        # appleboy/ssh-action: GitHub Actions에서 SSH 접속을 도와주는 액션
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}      # EC2 퍼블릭 IP (Secrets)
+          username: ${{ secrets.EC2_USER }}  # ubuntu 계정 (Secrets)
+          key: ${{ secrets.EC2_SSH_KEY }}    # pem 파일 내용 (Secrets)
+          port: 22                           # SSH 포트 (기본 22)
+
+          # 이 script는 "EC2 서버 안에서" 실행됨
+          script: |
+            # 1) 프로젝트 폴더로 이동
+            cd /home/ubuntu/cicd
+
+            # 2) 로컬에 있는 deploy.sh 실행
+            #    이 스크립트 안에서 git pull 등 실제 배포 작업이 일어남
+            ./deploy.sh
+
