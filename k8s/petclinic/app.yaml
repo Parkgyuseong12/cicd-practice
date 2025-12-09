@@ -22,8 +22,9 @@ spec:
     spec:
       containers:
         - name: petclinic
-          # ⬇ ECR에 올린 이미지 주소
-          image: 175321200489.dkr.ecr.ap-northeast-2.amazonaws.com/petclinic-was:latest
+          image: 175321200489.dkr.ecr.ap-northeast-2.amazonaws.com/petclinic-was:v1
+          imagePullPolicy: Always        # 새 태그지만, 혹시 몰라서 Always로 강제
+
           ports:
             - containerPort: 8080  # 컨테이너에서 톰캣이 듣는 포트
           env:
