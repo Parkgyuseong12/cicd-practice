@@ -1,0 +1,36 @@
+name: CI - Validate K8s Manifests  # Actions 탭에 보이는 이름
+
+# 언제 돌릴지 설정
+on:
+  push:
+    branches: [ "main" ]          # main 브랜치에 push될 때마다 실행
+  pull_request:
+    branches: [ "main" ]          # main 대상으로 PR 올려도 실행
+
+jobs:
+  validate-k8s:
+    runs-on: ubuntu-latest        # GitHub에서 제공하는 Ubuntu 러너 사용
+
+    steps:
+      # 1) 현재 레포 소스 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) kubectl 설치 (최신 stable 버전 다운로드)
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          kubectl version --client
+
+      # 3) demo-app 매니페스트 유효성 검사
+      #    --dry-run=client : 실제 클러스터에 적용하지 않고 로컬에서만 검사
+      #    --validate=true  : 스키마 기반으로 필드 구조도 확인
+      - name: Validate demo-app manifest
+        run: |
+          kubectl apply \
+            --dry-run=client \
+            --validate=true \
+            -f k8s/demo-app/app.yaml
+
