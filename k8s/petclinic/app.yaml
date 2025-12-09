@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: petclinic
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic
+  namespace: petclinic
+  labels:
+    app: petclinic
+spec:
+  replicas: 2                     # 파드 2개로 시작
+  selector:
+    matchLabels:
+      app: petclinic
+  template:
+    metadata:
+      labels:
+        app: petclinic
+    spec:
+      containers:
+        - name: petclinic
+          # ⬇ ECR에 올린 이미지 주소
+          image: 175321200489.dkr.ecr.ap-northeast-2.amazonaws.com/petclinic-was:latest
+          ports:
+            - containerPort: 8080  # 컨테이너에서 톰캣이 듣는 포트
+          env:
+            # DB 없이 H2/properties 기본 프로필로 쓴다는 가정
+            - name: SPRING_PROFILES_ACTIVE
+              value: "default"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic
+  namespace: petclinic
+spec:
+  type: LoadBalancer              # 외부에서 접속해보려고 LB 사용
+  selector:
+    app: petclinic
+  ports:
+    - port: 80                    # 외부에서 보는 포트
+      targetPort: 8080            # 파드 내부 포트(컨테이너 포트)
